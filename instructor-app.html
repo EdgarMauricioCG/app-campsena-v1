@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAMPESENA Instructor — Prototipo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white: #FFFFFF;
+    --bg: #FAFBFC;
+    --surface: #FFFFFF;
+    --ink: #0A2741;
+    --ink-secondary: #5A6B7B;
+    --ink-tertiary: #94A3B3;
+    --ink-ghost: #C8D1DA;
+    --green: #00AC00;
+    --green-soft: #E8F5E8;
+    --green-muted: rgba(0,172,0,0.08);
+    --teal: #11696B;
+    --teal-soft: #E6F2F2;
+    --border: #EEF1F4;
+    --border-light: #F4F6F8;
+    --shadow-sm: 0 1px 3px rgba(10,39,65,0.04);
+    --shadow-md: 0 4px 16px rgba(10,39,65,0.06);
+    --shadow-lg: 0 8px 32px rgba(10,39,65,0.08);
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 999px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #E8ECEF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app-frame {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 40px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 0 8px #1a1a1a, 0 0 0 10px #333, var(--shadow-lg);
+  }
+
+  .screen {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    transform: translateY(8px);
+    overflow: hidden;
+  }
+
+  .screen.active {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .screen-scroll {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .screen-scroll::-webkit-scrollbar { display: none; }
+
+  /* — Status bar — */
+  .status-bar {
+    height: 54px;
+    padding: 14px 28px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+  .status-bar-time {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.2px;
+  }
+  .status-bar-icons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .status-bar-icons span {
+    font-size: 16px;
+    color: var(--ink);
+  }
+
+  /* — Navigation header — */
+  .nav-header {
+    padding: 4px 20px 16px;
+    flex-shrink: 0;
+    background: var(--bg);
+  }
+  .nav-header-back {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--ink-secondary);
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 8px 0;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    font-family: inherit;
+  }
+  .nav-header-back:hover { color: var(--ink); }
+  .nav-header-back .material-symbols-outlined { font-size: 18px; }
+  .nav-header-title {
+    font-family: 'Newsreader', serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    margin-top: 4px;
+  }
+  .nav-header-subtitle {
+    font-size: 13px;
+    color: var(--ink-tertiary);
+    margin-top: 2px;
+    font-weight: 300;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+
+  /* — Bottom nav — */
+  .bottom-nav {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    padding-bottom: 8px;
+  }
+  .bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
+    background: none;
+    border: none;
+    font-family: inherit;
+  }
+  .bottom-nav-item .material-symbols-outlined {
+    font-size: 22px;
+    color: var(--ink-tertiary);
+    transition: color 0.2s;
+  }
+  .bottom-nav-item span:last-child {
+    font-size: 11px;
+    color: var(--ink-tertiary);
+    font-weight: 400;
+    letter-spacing: 0.2px;
+    transition: color 0.2s;
+  }
+  .bottom-nav-item.active .material-symbols-outlined {
+    color: var(--green);
+    font-variation-settings: 'FILL' 1;
+  }
+  .bottom-nav-item.active span:last-child {
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  /* — Cards — */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    transition: box-shadow 0.25s, transform 0.25s;
+  }
+  .card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .card-interactive { cursor: pointer; }
+
+  /* — Progress bar — */
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 2px;
+    transition: width 0.6s ease;
+  }
+
+  /* — Progress ring — */
+  .progress-ring {
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+  }
+  .progress-ring svg {
+    transform: rotate(-90deg);
+  }
+  .progress-ring-bg {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 3;
+  }
+  .progress-ring-fill {
+    fill: none;
+    stroke: var(--green);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+  }
+  .progress-ring-text {
+    font-size: 12px;
+    font-weight: 500;
+    fill: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* — Play button — */
+  .play-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: var(--green);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    flex-shrink: 0;
+  }
+  .play-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0,172,0,0.25);
+  }
+  .play-btn .material-symbols-outlined {
+    color: white;
+    font-size: 20px;
+    font-variation-settings: 'FILL' 1;
+  }
+  .play-btn-lg {
+    width: 64px;
+    height: 64px;
+  }
+  .play-btn-lg .material-symbols-outlined {
+    font-size: 32px;
+  }
+
+  /* — Tag/chip — */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink-secondary);
+    background: var(--border-light);
+  }
+
+  /* — Divider — */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0 20px;
+  }
+
+  /* — Button — */
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: var(--radius-full);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    letter-spacing: -0.1px;
+  }
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,172,0,0.3);
+  }
+  .btn-outline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: transparent;
+    color: var(--ink-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover {
+    border-color: var(--ink-ghost);
+    color: var(--ink);
+  }
+
+  /* — Splash specific — */
+  #splash {
+    background: var(--white);
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+  }
+  .splash-logo {
+    font-family: 'Newsreader', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--ink);
+    letter-spacing: -1px;
+    line-height: 1;
+  }
+  .splash-logo em {
+    font-style: italic;
+    color: var(--green);
+  }
+  .splash-divider {
+    width: 32px;
+    height: 1px;
+    background: var(--ink-ghost);
+    margin: 24px auto;
+  }
+  .splash-area {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    color: var(--ink-tertiary);
+    font-weight: 400;
+  }
+  .splash-subcategory {
+    font-family: 'Newsreader', serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--ink-secondary);
+    margin-top: 8px;
+    font-style: italic;
+  }
+  .splash-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 48px;
+  }
+  .splash-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--ink-ghost);
+    animation: dotPulse 1.4s ease-in-out infinite;
+  }
+  .splash-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .splash-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotPulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  /* — Podcast player — */
+  .player-artwork {
+    width: 100%;
+    aspect-ratio: 16/10;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+  }
+  .player-artwork-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .player-slider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 4px;
+  }
+  .player-slider-time {
+    font-size: 12px;
+    color: var(--ink-tertiary);
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    min-width: 36px;
+  }
+  .player-slider-track {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+  }
+  .player-slider-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--teal);
+    border-radius: 2px;
+    width: 25%;
+  }
+  .player-slider-thumb {
+    position: absolute;
+    top: 50%;
+    left: 25%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 1px 4px rgba(17,105,107,0.3);
+  }
+
+  .player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+  }
+  .player-control-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: var(--radius-full);
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+  }
+  .player-control-btn:hover { background: var(--border-light); }
+  .player-control-btn .material-symbols-outlined {
+    font-size: 22px;
+    color: var(--ink-secondary);
+  }
+  .player-control-btn-sm .material-symbols-outlined {
+    font-size: 20px;
+    color: var(--ink-tertiary);
+  }
+  .play-btn-teal {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-full);
+    background: var(--teal);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .play-btn-teal:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(17,105,107,0.3);
+  }
+  .play-btn-teal .material-symbols-outlined {
+    font-size: 28px;
+    color: white;
+    font-variation-settings: 'FILL' 1;
+  }
+
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 8px;
+  }
+  .playlist-item:hover { background: var(--border-light); margin: 0 -8px; padding: 12px 8px; }
+  .playlist-item-index {
+    width: 24px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .playlist-item-active .playlist-item-index { color: var(--teal); }
+  .playlist-item-title {
+    flex: 1;
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 400;
+  }
+  .playlist-item-active .playlist-item-title { color: var(--teal); font-weight: 500; }
+  .playlist-item-duration {
+    font-size: 13px;
+    color: var(--ink-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* — Glossary — */
+  .alpha-bar {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding: 0 20px;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .alpha-bar::-webkit-scrollbar { display: none; }
+  .alpha-btn {
+    padding: 6px 10px;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink-tertiary);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    font-weight: 400;
+  }
+  .alpha-btn:hover { background: var(--border-light); color: var(--ink); }
+  .alpha-btn.active {
+    background: var(--green-muted);
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .glossary-term {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .glossary-term-word {
+    font-family: 'Newsreader', serif;
+    font-size: 17px;
+    color: var(--ink);
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .glossary-term-def {
+    font-size: 13px;
+    color: var(--ink-secondary);
+    line-height: 1.55;
+    font-weight: 300;
+  }
+
+  /* — Utility — */
+  .px-20 { padding-left: 20px; padding-right: 20px; }
+  .py-12 { padding-top: 12px; padding-bottom: 12px; }
+  .mt-4 { margin-top: 4px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-12 { margin-top: 12px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-20 { margin-top: 20px; }
+  .mt-24 { margin-top: 24px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mb-20 { margin-bottom: 20px; }
+  .gap-12 { gap: 12px; }
+  .gap-16 { gap: 16px; }
+  .text-sm { font-size: 13px; }
+  .text-xs { font-size: 12px; }
+  .text-ghost { color: var(--ink-tertiary); }
+  .text-secondary { color: var(--ink-secondary); }
+  .font-light { font-weight: 300; }
+  .flex { display: flex; }
+  .items-center { align-items: center; }
+  .justify-between { justify-content: space-between; }
+
+  /* — Placeholder images — */
+  .img-placeholder {
+    background: linear-gradient(135deg, #E8F5E8 0%, #E6F2F2 50%, #EEF1F4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .img-placeholder .material-symbols-outlined {
+    font-size: 32px;
+    color: var(--ink-ghost);
+  }
+  .img-placeholder-dark {
+    background: linear-gradient(160deg, #0A2741 0%, #11696B 60%, #00AC00 100%);
+  }
+  .img-placeholder-dark .material-symbols-outlined {
+    color: rgba(255,255,255,0.3);
+    font-size: 40px;
+  }
+
+  /* Stagger entrance animations */
+  .stagger-1 { animation: fadeUp 0.4s ease 0.05s both; }
+  .stagger-2 { animation: fadeUp 0.4s ease 0.1s both; }
+  .stagger-3 { animation: fadeUp 0.4s ease 0.15s both; }
+  .stagger-4 { animation: fadeUp 0.4s ease 0.2s both; }
+  .stagger-5 { animation: fadeUp 0.4s ease 0.25s both; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* — Home indicator — */
+  .home-indicator {
+    width: 134px;
+    height: 5px;
+    background: var(--ink);
+    opacity: 0.15;
+    border-radius: 3px;
+    margin: 0 auto 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-frame">
+
+  <!-- ==================== SPLASH ==================== -->
+  <div class="screen active" id="splash" onclick="navigateTo('home')">
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+      <div class="splash-logo">camp<em>e</em>sena</div>
+      <div class="splash-divider"></div>
+      <div class="splash-area">Pecuaria</div>
+      <div class="splash-subcategory">Ganaderia bovina</div>
+      <div class="splash-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+  <!-- ==================== HOME ==================== -->
+  <div class="screen" id="home">
+    <div class="status-bar">
+      <span class="status-bar-time">9:41</span>
+      <div class="status-bar-icons">
+        <span class="material-symbols-outlined" style="font-size:15px">signal_cellular_alt</span>
+        <span class="material-symbols-outlined" style="font-size:15px">wifi</span>
+        <span class="material-symbols-outlined" style="font-size:16px">battery_4_bar</span>
+      </div>
+    </div>
+
+    <div class="nav-header">
+      <div class="nav-header-subtitle">Pecuaria</div>
+      <div class="nav-header-title">Ganaderia bovina</div>
+    </div>
+
+    <div class="screen-scroll">
+      <div class="px-20">
+        <!-- Intro card -->
+        <div class="card stagger-1" style="padding:16px; display:flex; align-items:center; gap:14px;">
+          <div class="img-placeholder" style="width:56px;height:56px;border-radius:var(--radius-sm);flex-shrink:0;">
+            <span class="material-symbols-outlined" style="font-size:22px">mic</span>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;color:var(--ink);font-weight:400;line-height:1.4;">
+              Carne, leche, doble proposito y buenas practicas ganaderas
+            </div>
+            <div style="font-size:12px;color:var(--ink-tertiary);margin-top:2px;font-weight:300;">
+              Audio de introduccion
+            </div>
+          </div>
+          <button class="play-btn">
+            <span class="material-symbols-outlined">play_arrow</span>
+          </button>
+        </div>
+
+        <!-- Course count -->
+        <div class="stagger-2" style="display:flex;justify-content:space-between;align-items:baseline;margin-top:28px;margin-bottom:12px;">
+          <span style="font-size:13px;color:var(--ink-tertiary);font-weight:400;letter-spacing:0.3px;text-transform:uppercase;">Cursos</span>
+          <span style="font-size:13px;color:var(--ink-ghost);">6 disponibles</span>
+        </div>
+
+        <!-- Course cards -->
+        <div class="card card-interactive stagger-3" onclick="navigateTo('course-detail')" style="padding:18px;margin-bottom:10px;">
+          <div style="font-size:15px;color:var(--ink);font-weight:400;line-height:1.45;letter-spacing:-0.1px;">
+            Implementacion de buenas practicas ganaderas en la produccion de leche bovina
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+            <span class="chip">
+              <span class="material-symbols-outlined" style="font-size:13px">book_2</span>
+              2 temas
+            </span>
+            <span style="font-size:12px;color:var(--green);font-weight:500;">40%</span>
+          </div>
+          <div class="progress-bar" style="margin-top:8px;">
+            <div class="progress-bar-fill" style="width:40%;"></div>
+          </div>
+        </div>
+
+        <div class="card card-interactive stagger-4" onclick="navigateTo('course-detail')" style="padding:18px;margin-bottom:10px;">
+          <div style="font-size:15px;color:var(--ink);font-weight:400;line-height:1.45;letter-spacing:-0.1px;">
+            Implementacion de BPG en la produccion de carne bovina
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+            <span class="chip">
+              <span class="material-symbols-outlined" style="font-size:13px">book_2</span>
+              3 temas
+            </span>
+            <span style="font-size:12px;color:var(--ink-tertiary);font-weight:400;">0%</span>
+          </div>
+          <div class="progress-bar" style="margin-top:8px;">
+            <div class="progress-bar-fill" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <div class="card card-interactive stagger-5" onclick="navigateTo('course-detail')" style="padding:18px;margin-bottom:10px;">
+          <div style="font-size:15px;color:var(--ink);font-weight:400;line-height:1.45;letter-spacing:-0.1px;">
+            Manejo de ganado doble proposito
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+            <span class="chip">
+              <span class="material-symbols-outlined" style="font-size:13px">book_2</span>
+              2 temas
+            </span>
+            <span style="font-size:12px;color:var(--ink-tertiary);font-weight:400;">15%</span>
+          </div>
+          <div class="progress-bar" style="margin-top:8px;">
+            <div class="progress-bar-fill" style="width:15%;"></div>
+          </div>
+        </div>
+
+        <div class="card stagger-5" style="padding:18px;margin-bottom:10px;opacity:0.5;">
+          <div style="font-size:15px;color:var(--ink);font-weight:400;line-height:1.45;">
+            Bienestar animal en sistemas productivos bovinos
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;">
+            <span class="chip">
+              <span class="material-symbols-outlined" style="font-size:13px">book_2</span>
+              2 temas
+            </span>
+            <span style="font-size:12px;color:var(--ink-tertiary);font-weight:400;">0%</span>
+          </div>
+          <div class="progress-bar" style="margin-top:8px;">
+            <div class="progress-bar-fill" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <!-- Credits -->
+        <div style="text-align:center;padding:20px 0 24px;">
+          <button class="btn-outline" style="margin:0 auto;">
+            <span class="material-symbols-outlined" style="font-size:16px">info</span>
+            Creditos
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+  <!-- ==================== COURSE DETAIL ==================== -->
+  <div class="screen" id="course-detail">
+    <div class="status-bar">
+      <span class="status-bar-time">9:41</span>
+      <div class="status-bar-icons">
+        <span class="material-symbols-outlined" style="font-size:15px">signal_cellular_alt</span>
+        <span class="material-symbols-outlined" style="font-size:15px">wifi</span>
+        <span class="material-symbols-outlined" style="font-size:16px">battery_4_bar</span>
+      </div>
+    </div>
+
+    <div class="nav-header">
+      <button class="nav-header-back" onclick="navigateTo('home')">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Cursos
+      </button>
+    </div>
+
+    <div class="screen-scroll">
+      <div class="px-20">
+        <!-- Course cover -->
+        <div class="img-placeholder-dark stagger-1" style="width:100%;aspect-ratio:16/9;border-radius:var(--radius-md);margin-bottom:20px;">
+          <span class="material-symbols-outlined">landscape</span>
+        </div>
+
+        <div class="stagger-2" style="font-family:'Newsreader',serif;font-size:24px;font-weight:400;color:var(--ink);line-height:1.25;letter-spacing:-0.3px;">
+          Implementacion de buenas practicas ganaderas en la produccion de leche bovina
+        </div>
+
+        <div class="stagger-3" style="font-size:14px;color:var(--ink-secondary);line-height:1.6;margin-top:12px;font-weight:300;">
+          Este programa formativo aborda los fundamentos y practicas esenciales para la produccion sostenible de leche bovina, incluyendo manejo sanitario, alimentacion y bienestar animal.
+        </div>
+
+        <!-- Play intro -->
+        <div class="stagger-4" style="margin-top:20px;">
+          <div class="card" style="padding:14px 16px;display:flex;align-items:center;gap:12px;">
+            <button class="play-btn" style="width:36px;height:36px;">
+              <span class="material-symbols-outlined" style="font-size:18px">play_arrow</span>
+            </button>
+            <div>
+              <div style="font-size:14px;color:var(--ink);font-weight:400;">Escuchar introduccion</div>
+              <div style="font-size:12px;color:var(--ink-tertiary);font-weight:300;margin-top:1px;">5:47 min</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="stagger-5" style="margin-top:24px;margin-bottom:24px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+            <span style="font-size:13px;color:var(--ink-tertiary);font-weight:300;text-transform:uppercase;letter-spacing:0.3px;">Progreso general</span>
+            <span style="font-size:14px;color:var(--green);font-weight:500;">40%</span>
+          </div>
+          <div class="progress-bar" style="height:4px;">
+            <div class="progress-bar-fill" style="width:40%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="bottom-nav-item active" onclick="showTab('course-detail')">
+        <span class="material-symbols-outlined">home</span>
+        <span>Inicio</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('topics')">
+        <span class="material-symbols-outlined">menu_book</span>
+        <span>Temas</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('glossary')">
+        <span class="material-symbols-outlined">dictionary</span>
+        <span>Glosario</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('pdf')">
+        <span class="material-symbols-outlined">description</span>
+        <span>Cartilla</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('activity')">
+        <span class="material-symbols-outlined">quiz</span>
+        <span>Actividad</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== TOPICS ==================== -->
+  <div class="screen" id="topics">
+    <div class="status-bar">
+      <span class="status-bar-time">9:41</span>
+      <div class="status-bar-icons">
+        <span class="material-symbols-outlined" style="font-size:15px">signal_cellular_alt</span>
+        <span class="material-symbols-outlined" style="font-size:15px">wifi</span>
+        <span class="material-symbols-outlined" style="font-size:16px">battery_4_bar</span>
+      </div>
+    </div>
+
+    <div class="nav-header">
+      <button class="nav-header-back" onclick="navigateTo('home')">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Cursos
+      </button>
+      <div class="nav-header-title" style="font-size:22px;">Temas</div>
+    </div>
+
+    <div class="screen-scroll">
+      <div class="px-20">
+        <!-- Topic 1 -->
+        <div class="card card-interactive stagger-1" onclick="navigateTo('podcast')" style="padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;">
+          <div class="progress-ring">
+            <svg width="52" height="52" viewBox="0 0 52 52">
+              <circle class="progress-ring-bg" cx="26" cy="26" r="22"/>
+              <circle class="progress-ring-fill" cx="26" cy="26" r="22"
+                stroke-dasharray="138.23"
+                stroke-dashoffset="34.56"/>
+              <text class="progress-ring-text" x="26" y="26" text-anchor="middle" dominant-baseline="central"
+                transform="rotate(90 26 26)">75%</text>
+            </svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;color:var(--green);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Tema 1</div>
+            <div style="font-size:15px;color:var(--ink);font-weight:400;line-height:1.4;margin-top:2px;">
+              Muestreo de variables ambientales en agroecosistemas
+            </div>
+            <div style="font-size:12px;color:var(--ink-tertiary);margin-top:6px;font-weight:300;display:flex;align-items:center;gap:4px;">
+              <span class="material-symbols-outlined" style="font-size:14px">headphones</span>
+              6 audios
+            </div>
+          </div>
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--ink-ghost);">chevron_right</span>
+        </div>
+
+        <!-- Topic 2 -->
+        <div class="card card-interactive stagger-2" onclick="navigateTo('podcast')" style="padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;">
+          <div class="progress-ring">
+            <svg width="52" height="52" viewBox="0 0 52 52">
+              <circle class="progress-ring-bg" cx="26" cy="26" r="22"/>
+              <circle class="progress-ring-fill" cx="26" cy="26" r="22"
+                stroke-dasharray="138.23"
+                stroke-dashoffset="138.23"/>
+              <text class="progress-ring-text" x="26" y="26" text-anchor="middle" dominant-baseline="central"
+                transform="rotate(90 26 26)">0%</text>
+            </svg>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;color:var(--ink-tertiary);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;">Tema 2</div>
+            <div style="font-size:15px;color:var(--ink);font-weight:400;line-height:1.4;margin-top:2px;">
+              Manejo sanitario del hato lechero
+            </div>
+            <div style="font-size:12px;color:var(--ink-tertiary);margin-top:6px;font-weight:300;display:flex;align-items:center;gap:4px;">
+              <span class="material-symbols-outlined" style="font-size:14px">headphones</span>
+              3 audios
+            </div>
+          </div>
+          <span class="material-symbols-outlined" style="font-size:18px;color:var(--ink-ghost);">chevron_right</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="bottom-nav-item" onclick="showTab('course-detail')">
+        <span class="material-symbols-outlined">home</span>
+        <span>Inicio</span>
+      </button>
+      <button class="bottom-nav-item active" onclick="showTab('topics')">
+        <span class="material-symbols-outlined">menu_book</span>
+        <span>Temas</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('glossary')">
+        <span class="material-symbols-outlined">dictionary</span>
+        <span>Glosario</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('pdf')">
+        <span class="material-symbols-outlined">description</span>
+        <span>Cartilla</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('activity')">
+        <span class="material-symbols-outlined">quiz</span>
+        <span>Actividad</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== PODCAST ==================== -->
+  <div class="screen" id="podcast">
+    <div class="status-bar" style="background:transparent;position:relative;z-index:2;">
+      <span class="status-bar-time" style="color:white">9:41</span>
+      <div class="status-bar-icons">
+        <span class="material-symbols-outlined" style="font-size:15px;color:white">signal_cellular_alt</span>
+        <span class="material-symbols-outlined" style="font-size:15px;color:white">wifi</span>
+        <span class="material-symbols-outlined" style="font-size:16px;color:white">battery_4_bar</span>
+      </div>
+    </div>
+
+    <div style="padding:0 20px 8px;background:transparent;position:relative;z-index:2;">
+      <button class="nav-header-back" onclick="navigateTo('topics')" style="color:rgba(255,255,255,0.7);">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Temas
+      </button>
+    </div>
+
+    <div class="screen-scroll" style="background:var(--bg);">
+      <!-- Artwork -->
+      <div style="position:relative;margin:-8px 0 0;">
+        <div class="img-placeholder-dark" style="width:100%;aspect-ratio:16/9;">
+          <span class="material-symbols-outlined" style="font-size:48px">headphones</span>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,var(--bg));"></div>
+      </div>
+
+      <div class="px-20" style="position:relative;z-index:1;">
+        <!-- Now playing info -->
+        <div class="stagger-1" style="margin-top:8px;">
+          <div style="font-size:12px;color:var(--ink-tertiary);font-weight:300;text-transform:uppercase;letter-spacing:0.5px;">Tema 1 — Reproduciendo</div>
+          <div style="font-family:'Newsreader',serif;font-size:20px;color:var(--ink);margin-top:4px;line-height:1.3;">Introduccion</div>
+          <div style="font-size:13px;color:var(--ink-secondary);margin-top:6px;line-height:1.5;font-weight:300;">
+            Descripcion general del muestreo de variables ambientales en agroecosistemas ganaderos.
+          </div>
+        </div>
+
+        <!-- Slider -->
+        <div class="stagger-2 player-slider" style="margin-top:24px;">
+          <span class="player-slider-time">1:23</span>
+          <div class="player-slider-track">
+            <div class="player-slider-fill"></div>
+            <div class="player-slider-thumb"></div>
+          </div>
+          <span class="player-slider-time">5:47</span>
+        </div>
+
+        <!-- Controls -->
+        <div class="stagger-3 player-controls" style="margin-top:16px;">
+          <button class="player-control-btn player-control-btn-sm">
+            <span class="material-symbols-outlined">shuffle</span>
+          </button>
+          <button class="player-control-btn">
+            <span class="material-symbols-outlined">skip_previous</span>
+          </button>
+          <button class="play-btn-teal">
+            <span class="material-symbols-outlined">play_arrow</span>
+          </button>
+          <button class="player-control-btn">
+            <span class="material-symbols-outlined">skip_next</span>
+          </button>
+          <button class="player-control-btn player-control-btn-sm">
+            <span class="material-symbols-outlined">repeat</span>
+          </button>
+        </div>
+
+        <!-- Playlist -->
+        <div class="stagger-4" style="margin-top:28px;">
+          <div style="font-size:12px;color:var(--ink-tertiary);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;font-weight:400;">Playlist</div>
+
+          <div class="playlist-item playlist-item-active">
+            <span class="playlist-item-index">
+              <span class="material-symbols-outlined" style="font-size:16px;color:var(--teal)">graphic_eq</span>
+            </span>
+            <span class="playlist-item-title">Introduccion</span>
+            <span class="playlist-item-duration">5:47</span>
+          </div>
+          <div class="playlist-item">
+            <span class="playlist-item-index">2</span>
+            <span class="playlist-item-title">Ganado y empresa bovina</span>
+            <span class="playlist-item-duration">8:23</span>
+          </div>
+          <div class="playlist-item">
+            <span class="playlist-item-index">3</span>
+            <span class="playlist-item-title">Razas bovinas de leche</span>
+            <span class="playlist-item-duration">6:15</span>
+          </div>
+          <div class="playlist-item">
+            <span class="playlist-item-index">4</span>
+            <span class="playlist-item-title">Alimentacion y nutricion</span>
+            <span class="playlist-item-duration">7:02</span>
+          </div>
+          <div class="playlist-item">
+            <span class="playlist-item-index">5</span>
+            <span class="playlist-item-title">Sanidad animal</span>
+            <span class="playlist-item-duration">9:11</span>
+          </div>
+          <div class="playlist-item">
+            <span class="playlist-item-index">6</span>
+            <span class="playlist-item-title">Reproduccion bovina</span>
+            <span class="playlist-item-duration">5:45</span>
+          </div>
+
+          <div style="height:24px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GLOSSARY ==================== -->
+  <div class="screen" id="glossary">
+    <div class="status-bar">
+      <span class="status-bar-time">9:41</span>
+      <div class="status-bar-icons">
+        <span class="material-symbols-outlined" style="font-size:15px">signal_cellular_alt</span>
+        <span class="material-symbols-outlined" style="font-size:15px">wifi</span>
+        <span class="material-symbols-outlined" style="font-size:16px">battery_4_bar</span>
+      </div>
+    </div>
+
+    <div class="nav-header">
+      <button class="nav-header-back" onclick="navigateTo('home')">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Cursos
+      </button>
+      <div class="nav-header-title" style="font-size:22px;">Glosario</div>
+    </div>
+
+    <!-- Alpha bar -->
+    <div class="alpha-bar" style="margin-bottom:8px;">
+      <button class="alpha-btn active">A</button>
+      <button class="alpha-btn">B</button>
+      <button class="alpha-btn">C</button>
+      <button class="alpha-btn">D</button>
+      <button class="alpha-btn">E</button>
+      <button class="alpha-btn">F</button>
+      <button class="alpha-btn">G</button>
+      <button class="alpha-btn">H</button>
+      <button class="alpha-btn">I</button>
+      <button class="alpha-btn">L</button>
+      <button class="alpha-btn">M</button>
+      <button class="alpha-btn">N</button>
+      <button class="alpha-btn">P</button>
+      <button class="alpha-btn">R</button>
+      <button class="alpha-btn">S</button>
+      <button class="alpha-btn">V</button>
+    </div>
+
+    <div class="screen-scroll">
+      <div class="glossary-term stagger-1">
+        <div class="glossary-term-word">Agroecosistema</div>
+        <div class="glossary-term-def">Sistema ecologico modificado por el ser humano para la produccion agropecuaria, integrando componentes bioticos y abioticos.</div>
+      </div>
+      <div class="glossary-term stagger-2">
+        <div class="glossary-term-word">Aplicar a escala</div>
+        <div class="glossary-term-def">Implementar una practica o tecnologia de forma proporcional al tamaño y condiciones del sistema productivo.</div>
+      </div>
+      <div class="glossary-term stagger-3">
+        <div class="glossary-term-word">Aforo</div>
+        <div class="glossary-term-def">Metodo de medicion de la cantidad de forraje disponible en una pradera o potrero para estimar la capacidad de carga animal.</div>
+      </div>
+      <div class="glossary-term stagger-4">
+        <div class="glossary-term-word">Aguas residuales</div>
+        <div class="glossary-term-def">Aguas que han sido utilizadas en procesos domesticos, industriales o agropecuarios y que contienen contaminantes que deben ser tratados.</div>
+      </div>
+      <div class="glossary-term stagger-5">
+        <div class="glossary-term-word">Alimentacion balanceada</div>
+        <div class="glossary-term-def">Dieta que proporciona los nutrientes necesarios en las cantidades adecuadas para mantener la salud y productividad del animal.</div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="bottom-nav-item" onclick="showTab('course-detail')">
+        <span class="material-symbols-outlined">home</span>
+        <span>Inicio</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('topics')">
+        <span class="material-symbols-outlined">menu_book</span>
+        <span>Temas</span>
+      </button>
+      <button class="bottom-nav-item active" onclick="showTab('glossary')">
+        <span class="material-symbols-outlined">dictionary</span>
+        <span>Glosario</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('pdf')">
+        <span class="material-symbols-outlined">description</span>
+        <span>Cartilla</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('activity')">
+        <span class="material-symbols-outlined">quiz</span>
+        <span>Actividad</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== PDF ==================== -->
+  <div class="screen" id="pdf">
+    <div class="status-bar">
+      <span class="status-bar-time">9:41</span>
+      <div class="status-bar-icons">
+        <span class="material-symbols-outlined" style="font-size:15px">signal_cellular_alt</span>
+        <span class="material-symbols-outlined" style="font-size:15px">wifi</span>
+        <span class="material-symbols-outlined" style="font-size:16px">battery_4_bar</span>
+      </div>
+    </div>
+
+    <div class="nav-header">
+      <button class="nav-header-back" onclick="navigateTo('home')">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Cursos
+      </button>
+      <div class="nav-header-title" style="font-size:22px;">Cartilla</div>
+    </div>
+
+    <div class="screen-scroll">
+      <div class="px-20" style="display:flex;flex-direction:column;align-items:center;padding-top:24px;">
+        <!-- PDF preview -->
+        <div class="stagger-1 img-placeholder" style="width:200px;height:260px;border-radius:var(--radius-md);border:1px solid var(--border);flex-direction:column;gap:8px;">
+          <span class="material-symbols-outlined" style="font-size:48px;color:var(--ink-ghost)">picture_as_pdf</span>
+          <span style="font-size:12px;color:var(--ink-ghost);font-weight:300;">cartilla.pdf</span>
+        </div>
+
+        <div class="stagger-2" style="text-align:center;margin-top:24px;">
+          <div style="font-family:'Newsreader',serif;font-size:20px;color:var(--ink);font-weight:400;">
+            Cartilla del programa
+          </div>
+          <div style="font-size:14px;color:var(--ink-secondary);line-height:1.6;margin-top:8px;font-weight:300;max-width:300px;">
+            Material complementario con guias practicas, procedimientos y fichas tecnicas para el desarrollo del programa formativo.
+          </div>
+        </div>
+
+        <button class="btn-primary stagger-3" style="margin-top:28px;">
+          <span class="material-symbols-outlined" style="font-size:18px">open_in_new</span>
+          Abrir cartilla
+        </button>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="bottom-nav-item" onclick="showTab('course-detail')">
+        <span class="material-symbols-outlined">home</span>
+        <span>Inicio</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('topics')">
+        <span class="material-symbols-outlined">menu_book</span>
+        <span>Temas</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('glossary')">
+        <span class="material-symbols-outlined">dictionary</span>
+        <span>Glosario</span>
+      </button>
+      <button class="bottom-nav-item active" onclick="showTab('pdf')">
+        <span class="material-symbols-outlined">description</span>
+        <span>Cartilla</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('activity')">
+        <span class="material-symbols-outlined">quiz</span>
+        <span>Actividad</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== ACTIVITY ==================== -->
+  <div class="screen" id="activity">
+    <div class="status-bar">
+      <span class="status-bar-time">9:41</span>
+      <div class="status-bar-icons">
+        <span class="material-symbols-outlined" style="font-size:15px">signal_cellular_alt</span>
+        <span class="material-symbols-outlined" style="font-size:15px">wifi</span>
+        <span class="material-symbols-outlined" style="font-size:16px">battery_4_bar</span>
+      </div>
+    </div>
+
+    <div class="nav-header">
+      <button class="nav-header-back" onclick="navigateTo('home')">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Cursos
+      </button>
+      <div class="nav-header-title" style="font-size:22px;">Actividad</div>
+    </div>
+
+    <div class="screen-scroll">
+      <div class="px-20" style="display:flex;flex-direction:column;align-items:center;padding-top:16px;">
+        <!-- Activity image -->
+        <div class="stagger-1 img-placeholder" style="width:100%;aspect-ratio:16/10;border-radius:var(--radius-md);border:1px solid var(--border);">
+          <span class="material-symbols-outlined" style="font-size:40px;color:var(--ink-ghost)">school</span>
+        </div>
+
+        <div class="stagger-2" style="text-align:center;margin-top:24px;width:100%;">
+          <div style="font-family:'Newsreader',serif;font-size:20px;color:var(--ink);font-weight:400;">
+            Actividad evaluativa
+          </div>
+          <div style="font-size:14px;color:var(--ink-secondary);line-height:1.6;margin-top:8px;font-weight:300;">
+            Pon a prueba tus conocimientos sobre buenas practicas ganaderas respondiendo este cuestionario de seleccion multiple. Podras verificar tus respuestas al finalizar.
+          </div>
+        </div>
+
+        <div class="stagger-3 card" style="width:100%;padding:16px;margin-top:24px;">
+          <div style="display:flex;gap:16px;">
+            <div style="text-align:center;">
+              <div style="font-size:24px;color:var(--ink);font-weight:300;">10</div>
+              <div style="font-size:11px;color:var(--ink-tertiary);text-transform:uppercase;letter-spacing:0.3px;">Preguntas</div>
+            </div>
+            <div style="width:1px;background:var(--border);"></div>
+            <div style="text-align:center;">
+              <div style="font-size:24px;color:var(--ink);font-weight:300;">4</div>
+              <div style="font-size:11px;color:var(--ink-tertiary);text-transform:uppercase;letter-spacing:0.3px;">Opciones</div>
+            </div>
+            <div style="width:1px;background:var(--border);"></div>
+            <div style="text-align:center;">
+              <div style="font-size:24px;color:var(--ink);font-weight:300;">1</div>
+              <div style="font-size:11px;color:var(--ink-tertiary);text-transform:uppercase;letter-spacing:0.3px;">Correcta</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary stagger-4" style="margin-top:28px;width:100%;">
+          <span class="material-symbols-outlined" style="font-size:18px">play_arrow</span>
+          Iniciar actividad
+        </button>
+
+        <div style="height:24px;"></div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="bottom-nav-item" onclick="showTab('course-detail')">
+        <span class="material-symbols-outlined">home</span>
+        <span>Inicio</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('topics')">
+        <span class="material-symbols-outlined">menu_book</span>
+        <span>Temas</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('glossary')">
+        <span class="material-symbols-outlined">dictionary</span>
+        <span>Glosario</span>
+      </button>
+      <button class="bottom-nav-item" onclick="showTab('pdf')">
+        <span class="material-symbols-outlined">description</span>
+        <span>Cartilla</span>
+      </button>
+      <button class="bottom-nav-item active" onclick="showTab('activity')">
+        <span class="material-symbols-outlined">quiz</span>
+        <span>Actividad</span>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Navigation state
+  const history = ['splash'];
+  const courseScreens = ['course-detail', 'topics', 'glossary', 'pdf', 'activity'];
+
+  function navigateTo(screenId) {
+    const current = document.querySelector('.screen.active');
+    if (current) {
+      current.classList.remove('active');
+      // Small delay before hiding to allow transition
+      setTimeout(() => {
+        if (!current.classList.contains('active')) {
+          current.style.display = 'none';
+        }
+      }, 50);
+    }
+
+    const target = document.getElementById(screenId);
+    if (target) {
+      target.style.display = 'flex';
+      // Force reflow for animation
+      target.offsetHeight;
+      requestAnimationFrame(() => {
+        target.classList.add('active');
+      });
+    }
+
+    // Track history
+    if (history[history.length - 1] !== screenId) {
+      history.push(screenId);
+    }
+  }
+
+  function showTab(screenId) {
+    // Tab switching within course — no history push, direct swap
+    courseScreens.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('active');
+        el.style.display = 'none';
+      }
+    });
+
+    const target = document.getElementById(screenId);
+    if (target) {
+      target.style.display = 'flex';
+      target.offsetHeight;
+      requestAnimationFrame(() => {
+        target.classList.add('active');
+      });
+    }
+
+    // Update bottom nav active state
+    // We update all bottom navs across all screens
+    document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+      const onclick = btn.getAttribute('onclick');
+      if (onclick && onclick.includes(`'${screenId}'`)) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  // Alpha bar interaction
+  document.querySelectorAll('.alpha-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.alpha-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
